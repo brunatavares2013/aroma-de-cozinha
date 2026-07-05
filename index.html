@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aroma de Cozinha">
+<meta name="theme-color" content="#6B3A2A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Aroma de Cozinha — Registro do Dia</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --marrom: #6B3A2A;
+  --marrom-escuro: #3d1f0a;
+  --marrom-claro: #9a5a3a;
+  --bege: #F5ECD7;
+  --bege-escuro: #e8d8c0;
+  --bege-medio: #f0e8d8;
+  --texto: #3d1f0a;
+  --subtexto: #8a6a50;
+  --borda: #d4c0a0;
+  --verde: #2d7a3a;
+  --verde-claro: #e8f5ea;
+  --amarelo: #e8c050;
+  --vermelho: #c0402a;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bege-escuro);
+  color: var(--texto);
+  min-height: 100vh;
+  padding-bottom: 130px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── SPLASH ── */
+#splash {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--marrom);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
+  transition: opacity 0.4s;
+}
+.splash-icon {
+  width: 90px; height: 90px;
+}
+.splash-nome {
+  color: var(--bege); font-size: 24px; font-weight: 800; letter-spacing: 0.02em;
+}
+.splash-sub { color: #c4a070; font-size: 13px; }
+
+/* ── INSTALL BANNER ── */
+#install-banner {
+  display: none;
+  background: var(--marrom-claro); color: var(--bege);
+  padding: 12px 16px; gap: 10px;
+  align-items: flex-start;
+  position: relative;
+}
+#install-banner.visivel { display: flex; }
+.banner-texto { font-size: 12px; line-height: 1.5; flex: 1; }
+.banner-texto strong { font-size: 13px; display: block; margin-bottom: 2px; }
+.banner-fechar {
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700;
+  cursor: pointer; flex-shrink: 0; align-self: center;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--marrom);
+  padding: 16px 20px 14px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.header-row { display: flex; align-items: center; gap: 10px; }
+.header h1 { font-size: 18px; font-weight: 800; color: var(--bege); flex: 1; }
+.header-date { font-size: 11px; color: #c4a070; margin-top: 3px; letter-spacing: 0.05em; }
+.header-total-chip {
+  background: var(--amarelo); color: var(--marrom-escuro);
+  font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── BODY ── */
+.body { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 20px; }
+.section-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--subtexto);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--borda); }
+
+/* ── CARD ── */
+.card {
+  background: white; border-radius: 14px; margin-bottom: 10px;
+  border: 2px solid var(--borda); overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card.ativo { border-color: var(--marrom); box-shadow: 0 2px 12px rgba(107,58,42,0.12); }
+.card-topo {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px; cursor: pointer; user-select: none;
+}
+.check-box {
+  width: 28px; height: 28px; border-radius: 7px;
+  border: 2.5px solid var(--borda); background: white;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s; font-size: 15px; color: white;
+}
+.card.ativo .check-box { background: var(--marrom); border-color: var(--marrom); }
+.card-nome { font-size: 14px; font-weight: 700; color: var(--texto); flex: 1; line-height: 1.2; }
+.card-tipo-chip {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 3px 8px; border-radius: 10px;
+  background: var(--bege-medio); color: var(--subtexto); flex-shrink: 0;
+}
+.card.ativo .card-tipo-chip { background: #f5e8d0; color: var(--marrom); }
+
+/* ── CAMPOS ── */
+.card-campos { display: none; padding: 4px 14px 16px; border-top: 1px solid var(--bege-escuro); }
+.card.ativo .card-campos { display: block; }
+
+.variante-label {
+  font-size: 10px; font-weight: 700; color: var(--subtexto);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 8px; margin-top: 12px; display: block;
+}
+.variantes-row { display: flex; gap: 10px; }
+.variante-item { flex: 1; }
+.variante-nome { font-size: 11px; font-weight: 600; color: var(--marrom); margin-bottom: 5px; text-align: center; }
+.variante-preco { font-size: 10px; color: var(--subtexto); text-align: center; margin-bottom: 6px; }
+
+.simples-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.simples-label { font-size: 12px; font-weight: 600; color: var(--texto); flex: 1; line-height: 1.3; }
+.simples-preco { font-size: 11px; color: var(--subtexto); }
+
+/* ── CONTADOR ── */
+.contador {
+  display: flex; align-items: center;
+  border: 2px solid var(--borda); border-radius: 10px;
+  overflow: hidden; background: var(--bege-medio);
+}
+.contador-btn {
+  width: 48px; height: 48px; border: none; background: none; cursor: pointer;
+  font-size: 22px; font-weight: 300; color: var(--marrom);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s; flex-shrink: 0;
+}
+.contador-btn:active { background: var(--bege-escuro); }
+.contador-input {
+  width: 52px; height: 48px; border: none; background: white;
+  font-size: 20px; font-weight: 800; color: var(--texto);
+  text-align: center; outline: none;
+  border-left: 1.5px solid var(--borda);
+  border-right: 1.5px solid var(--borda);
+}
+.contador-input:focus { background: #fffbf5; }
+
+/* ── PRODUÇÃO ── */
+.producao-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--borda);
+}
+.producao-label { font-size: 10px; color: var(--subtexto); flex: 1; padding-right: 10px; line-height: 1.4; }
+.producao-input {
+  width: 80px; padding: 8px 10px; border: 1.5px solid var(--borda);
+  border-radius: 8px; font-size: 16px; font-weight: 700; color: var(--texto);
+  text-align: center; background: var(--bege-medio); outline: none; flex-shrink: 0;
+}
+.producao-input:focus { border-color: var(--marrom); }
+.sobra-linha { font-size: 10px; color: var(--vermelho); margin-top: 6px; display: none; font-weight: 600; }
+
+/* ── OBSERVAÇÕES ── */
+.obs-textarea {
+  width: 100%; padding: 12px; border: 2px solid var(--borda);
+  border-radius: 12px; font-size: 13px; color: var(--texto);
+  background: white; resize: none; outline: none; font-family: inherit;
+  line-height: 1.5; min-height: 70px;
+}
+.obs-textarea:focus { border-color: var(--marrom); }
+.obs-textarea::placeholder { color: #b0906a; }
+
+/* ── FOOTER FIXO ── */
+.footer-fixo {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--marrom-escuro); padding: 14px 20px;
+  z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.25);
+}
+.footer-resumo {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.footer-resumo-item { text-align: center; }
+.footer-resumo-label { font-size: 9px; color: #a08070; text-transform: uppercase; letter-spacing: 0.06em; }
+.footer-resumo-valor { font-size: 16px; font-weight: 800; color: var(--bege); line-height: 1.2; }
+.footer-resumo-valor.alerta { color: #f0a080; }
+.btn-fechar {
+  width: 100%; padding: 15px;
+  background: var(--amarelo); color: var(--marrom-escuro);
+  border: none; border-radius: 12px; font-size: 16px; font-weight: 800;
+  cursor: pointer; letter-spacing: 0.02em;
+}
+.btn-fechar:active { transform: scale(0.98); }
+.btn-fechar:disabled { background: #6a5a50; color: #a09080; cursor: default; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 200; display: none; align-items: flex-end; justify-content: center;
+}
+.modal-overlay.aberto { display: flex; }
+.modal {
+  background: white; border-radius: 20px 20px 0 0;
+  padding: 24px 20px 32px; width: 100%; max-width: 480px;
+  max-height: 85vh; overflow-y: auto;
+}
+.modal h2 { font-size: 18px; font-weight: 800; color: var(--marrom-escuro); margin-bottom: 4px; }
+.modal-data { font-size: 11px; color: var(--subtexto); margin-bottom: 20px; }
+.modal-secao { margin-bottom: 16px; }
+.modal-secao-titulo {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--subtexto); margin-bottom: 8px;
+}
+.modal-linha {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 6px 0; border-bottom: 1px solid #f0ebe3; font-size: 13px;
+}
+.modal-linha:last-child { border-bottom: none; }
+.modal-linha-nome { color: var(--texto); flex: 1; }
+.modal-linha-detalhe { font-size: 11px; color: var(--subtexto); }
+.modal-linha-valor { font-weight: 700; color: var(--marrom-escuro); margin-left: 12px; }
+.modal-linha-perda { color: var(--vermelho); }
+.modal-total {
+  background: var(--bege-medio); border-radius: 12px; padding: 14px 16px;
+  margin: 16px 0; display: flex; justify-content: space-between; align-items: center;
+}
+.modal-total-label { font-size: 13px; color: var(--subtexto); }
+.modal-total-valor { font-size: 22px; font-weight: 800; color: var(--marrom); }
+.modal-obs { font-size: 12px; color: var(--subtexto); font-style: italic; padding: 8px; background: var(--bege-medio); border-radius: 8px; margin-bottom: 16px; display: none; }
+.modal-btns { display: flex; gap: 10px; margin-top: 8px; }
+.btn-cancelar {
+  flex: 1; padding: 14px; border: 2px solid var(--borda); border-radius: 12px;
+  background: white; font-size: 14px; font-weight: 700; color: var(--subtexto); cursor: pointer;
+}
+.btn-confirmar {
+  flex: 2; padding: 14px; border: none; border-radius: 12px;
+  background: var(--verde); color: white; font-size: 14px; font-weight: 800; cursor: pointer;
+}
+.btn-confirmar:active { transform: scale(0.98); }
+
+/* ── TELA SUCESSO ── */
+.sucesso { display: none; padding: 32px 20px 140px; max-width: 480px; margin: 0 auto; }
+.sucesso-icone { font-size: 52px; text-align: center; margin-bottom: 10px; }
+.sucesso h2 { font-size: 22px; font-weight: 800; color: var(--marrom-escuro); text-align: center; margin-bottom: 6px; }
+.sucesso-sub { font-size: 14px; color: var(--subtexto); text-align: center; line-height: 1.6; margin-bottom: 24px; }
+
+.resumo-box {
+  background: white; border: 2px solid var(--borda); border-radius: 14px;
+  padding: 16px; margin-bottom: 14px;
+}
+.resumo-box-titulo {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--subtexto); margin-bottom: 10px;
+}
+.resumo-texto {
+  font-size: 12px; color: var(--texto); line-height: 1.7;
+  font-family: monospace; white-space: pre-wrap; word-break: break-word;
+}
+.btn-copiar {
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  background: #25D366; color: white; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-bottom: 10px; display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+}
+.btn-copiar:active { transform: scale(0.98); }
+.btn-enviar {
+  width: 100%; padding: 14px; border: 2px solid #25D366; border-radius: 12px;
+  background: white; color: #1a8a40; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-bottom: 10px;
+}
+.btn-enviar:active { transform: scale(0.98); }
+.btn-novo-dia {
+  width: 100%; padding: 14px; background: var(--marrom);
+  color: var(--bege); border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.copiado-msg {
+  text-align: center; font-size: 12px; color: var(--verde);
+  font-weight: 700; height: 20px; margin-bottom: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <svg class="splash-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <path d="M196 130 Q202 112 196 94 Q190 112 196 130" stroke="#F5ECD7" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <path d="M256 124 Q262 104 256 84 Q250 104 256 124" stroke="#F5ECD7" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <path d="M316 130 Q322 112 316 94 Q310 112 316 130" stroke="#F5ECD7" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <path d="M152 160 Q148 300 256 312 Q364 300 360 160 Z" fill="#F5ECD7"/>
+    <ellipse cx="256" cy="160" rx="104" ry="18" fill="#e8d8c0"/>
+    <path d="M360 196 Q416 196 416 240 Q416 284 360 284" stroke="#F5ECD7" stroke-width="22" fill="none" stroke-linecap="round"/>
+    <path d="M360 196 Q400 196 400 240 Q400 284 360 284" stroke="#6B3A2A" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <ellipse cx="256" cy="334" rx="148" ry="22" fill="#e8d8c0"/>
+    <ellipse cx="256" cy="332" rx="124" ry="12" fill="#F5ECD7"/>
+  </svg>
+  <div class="splash-nome">Aroma de Cozinha</div>
+  <div class="splash-sub">carregando...</div>
+</div>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <div class="banner-texto">
+    <strong>Salvar como aplicativo</strong>
+    <span id="banner-instrucao"></span>
+  </div>
+  <button class="banner-fechar" onclick="fecharBanner()">Entendi</button>
+</div>
+
+<!-- HEADER -->
+<div class="header" id="header">
+  <div class="header-row">
+    <h1>O que vendemos hoje?</h1>
+    <div class="header-total-chip" id="chip-total">R$ 0,00</div>
+  </div>
+  <div class="header-date" id="header-date"></div>
+</div>
+
+<!-- TELA DE REGISTRO -->
+<div class="body" id="tela-registro">
+
+  <div class="section">
+    <div class="section-title">Produção própria</div>
+
+    <!-- Bolo de cenoura -->
+    <div class="card" data-id="cenoura" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('cenoura')">
+        <div class="check-box" id="check-cenoura">✓</div>
+        <div class="card-nome">Bolo de cenoura</div>
+        <div class="card-tipo-chip">bolo</div>
+      </div>
+      <div class="card-campos">
+        <span class="variante-label">Vendas de hoje</span>
+        <div class="variantes-row">
+          <div class="variante-item">
+            <div class="variante-nome">Fatias</div>
+            <div class="variante-preco">R$ 9,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('cenoura-fatia',-1)">−</button>
+              <input class="contador-input" id="cenoura-fatia" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('cenoura-fatia',1)">+</button>
+            </div>
+          </div>
+          <div class="variante-item">
+            <div class="variante-nome">Bolos inteiros</div>
+            <div class="variante-preco">R$ 80,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('cenoura-inteiro',-1)">−</button>
+              <input class="contador-input" id="cenoura-inteiro" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('cenoura-inteiro',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas fatias foram feitas hoje?</span>
+          <input class="producao-input" id="fez-cenoura" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('cenoura')">
+        </div>
+        <div class="sobra-linha" id="sobra-cenoura"></div>
+      </div>
+    </div>
+
+    <!-- Bolo de fubá -->
+    <div class="card" data-id="fuba" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('fuba')">
+        <div class="check-box" id="check-fuba">✓</div>
+        <div class="card-nome">Bolo de fubá</div>
+        <div class="card-tipo-chip">bolo</div>
+      </div>
+      <div class="card-campos">
+        <span class="variante-label">Vendas de hoje</span>
+        <div class="variantes-row">
+          <div class="variante-item">
+            <div class="variante-nome">Fatias</div>
+            <div class="variante-preco">R$ 8,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('fuba-fatia',-1)">−</button>
+              <input class="contador-input" id="fuba-fatia" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('fuba-fatia',1)">+</button>
+            </div>
+          </div>
+          <div class="variante-item">
+            <div class="variante-nome">Bolos inteiros</div>
+            <div class="variante-preco">R$ 70,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('fuba-inteiro',-1)">−</button>
+              <input class="contador-input" id="fuba-inteiro" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('fuba-inteiro',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas fatias foram feitas hoje?</span>
+          <input class="producao-input" id="fez-fuba" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('fuba')">
+        </div>
+        <div class="sobra-linha" id="sobra-fuba"></div>
+      </div>
+    </div>
+
+    <!-- Bolo de laranja -->
+    <div class="card" data-id="laranja" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('laranja')">
+        <div class="check-box" id="check-laranja">✓</div>
+        <div class="card-nome">Bolo de laranja</div>
+        <div class="card-tipo-chip">bolo</div>
+      </div>
+      <div class="card-campos">
+        <span class="variante-label">Vendas de hoje</span>
+        <div class="variantes-row">
+          <div class="variante-item">
+            <div class="variante-nome">Fatias</div>
+            <div class="variante-preco">R$ 8,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('laranja-fatia',-1)">−</button>
+              <input class="contador-input" id="laranja-fatia" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('laranja-fatia',1)">+</button>
+            </div>
+          </div>
+          <div class="variante-item">
+            <div class="variante-nome">Bolos inteiros</div>
+            <div class="variante-preco">R$ 70,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('laranja-inteiro',-1)">−</button>
+              <input class="contador-input" id="laranja-inteiro" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('laranja-inteiro',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas fatias foram feitas hoje?</span>
+          <input class="producao-input" id="fez-laranja" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('laranja')">
+        </div>
+        <div class="sobra-linha" id="sobra-laranja"></div>
+      </div>
+    </div>
+
+    <!-- Torta de frango -->
+    <div class="card" data-id="torta" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('torta')">
+        <div class="check-box" id="check-torta">✓</div>
+        <div class="card-nome">Torta de frango</div>
+        <div class="card-tipo-chip">torta</div>
+      </div>
+      <div class="card-campos">
+        <span class="variante-label">Vendas de hoje</span>
+        <div class="variantes-row">
+          <div class="variante-item">
+            <div class="variante-nome">Fatias</div>
+            <div class="variante-preco">R$ 12,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('torta-fatia',-1)">−</button>
+              <input class="contador-input" id="torta-fatia" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('torta-fatia',1)">+</button>
+            </div>
+          </div>
+          <div class="variante-item">
+            <div class="variante-nome">Tortas inteiras</div>
+            <div class="variante-preco">R$ 80,00 cada</div>
+            <div class="contador">
+              <button class="contador-btn" onclick="alterar('torta-inteira',-1)">−</button>
+              <input class="contador-input" id="torta-inteira" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+              <button class="contador-btn" onclick="alterar('torta-inteira',1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas fatias foram feitas hoje?</span>
+          <input class="producao-input" id="fez-torta" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('torta')">
+        </div>
+        <div class="sobra-linha" id="sobra-torta"></div>
+      </div>
+    </div>
+
+    <!-- Pão queijo e presunto -->
+    <div class="card" data-id="queijo" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('queijo')">
+        <div class="check-box" id="check-queijo">✓</div>
+        <div class="card-nome">Pão recheado queijo e presunto</div>
+        <div class="card-tipo-chip">pão recheado</div>
+      </div>
+      <div class="card-campos">
+        <div class="simples-row">
+          <div>
+            <div class="simples-label">Unidades vendidas</div>
+            <div class="simples-preco">R$ 10,00 cada</div>
+          </div>
+          <div class="contador">
+            <button class="contador-btn" onclick="alterar('queijo-un',-1)">−</button>
+            <input class="contador-input" id="queijo-un" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+            <button class="contador-btn" onclick="alterar('queijo-un',1)">+</button>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas unidades foram feitas hoje?</span>
+          <input class="producao-input" id="fez-queijo" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('queijo')">
+        </div>
+        <div class="sobra-linha" id="sobra-queijo"></div>
+      </div>
+    </div>
+
+    <!-- Pão calabresa -->
+    <div class="card" data-id="calabresa" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('calabresa')">
+        <div class="check-box" id="check-calabresa">✓</div>
+        <div class="card-nome">Pão recheado calabresa</div>
+        <div class="card-tipo-chip">pão recheado</div>
+      </div>
+      <div class="card-campos">
+        <div class="simples-row">
+          <div>
+            <div class="simples-label">Unidades vendidas</div>
+            <div class="simples-preco">R$ 10,00 cada</div>
+          </div>
+          <div class="contador">
+            <button class="contador-btn" onclick="alterar('calabresa-un',-1)">−</button>
+            <input class="contador-input" id="calabresa-un" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+            <button class="contador-btn" onclick="alterar('calabresa-un',1)">+</button>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas unidades foram feitas hoje?</span>
+          <input class="producao-input" id="fez-calabresa" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('calabresa')">
+        </div>
+        <div class="sobra-linha" id="sobra-calabresa"></div>
+      </div>
+    </div>
+
+    <!-- Pão frango -->
+    <div class="card" data-id="frango" data-tipo="producao">
+      <div class="card-topo" onclick="toggleCard('frango')">
+        <div class="check-box" id="check-frango">✓</div>
+        <div class="card-nome">Pão recheado frango</div>
+        <div class="card-tipo-chip">pão recheado</div>
+      </div>
+      <div class="card-campos">
+        <div class="simples-row">
+          <div>
+            <div class="simples-label">Unidades vendidas</div>
+            <div class="simples-preco">R$ 10,00 cada</div>
+          </div>
+          <div class="contador">
+            <button class="contador-btn" onclick="alterar('frango-un',-1)">−</button>
+            <input class="contador-input" id="frango-un" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+            <button class="contador-btn" onclick="alterar('frango-un',1)">+</button>
+          </div>
+        </div>
+        <div class="producao-row">
+          <span class="producao-label">Quantas unidades foram feitas hoje?</span>
+          <input class="producao-input" id="fez-frango" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="calcSobra('frango')">
+        </div>
+        <div class="sobra-linha" id="sobra-frango"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVENDA -->
+  <div class="section">
+    <div class="section-title">Revenda</div>
+
+    <div class="card" data-id="refri" data-tipo="revenda">
+      <div class="card-topo" onclick="toggleCard('refri')">
+        <div class="check-box" id="check-refri">✓</div>
+        <div class="card-nome">Refrigerante (lata)</div>
+        <div class="card-tipo-chip">bebida</div>
+      </div>
+      <div class="card-campos">
+        <div class="simples-row">
+          <div>
+            <div class="simples-label">Latas vendidas</div>
+            <div class="simples-preco">R$ 5,00 cada</div>
+          </div>
+          <div class="contador">
+            <button class="contador-btn" onclick="alterar('refri-un',-1)">−</button>
+            <input class="contador-input" id="refri-un" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+            <button class="contador-btn" onclick="alterar('refri-un',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-id="agua" data-tipo="revenda">
+      <div class="card-topo" onclick="toggleCard('agua')">
+        <div class="check-box" id="check-agua">✓</div>
+        <div class="card-nome">Água mineral</div>
+        <div class="card-tipo-chip">bebida</div>
+      </div>
+      <div class="card-campos">
+        <div class="simples-row">
+          <div>
+            <div class="simples-label">Garrafinhas vendidas</div>
+            <div class="simples-preco">R$ 3,00 cada</div>
+          </div>
+          <div class="contador">
+            <button class="contador-btn" onclick="alterar('agua-un',-1)">−</button>
+            <input class="contador-input" id="agua-un" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+            <button class="contador-btn" onclick="alterar('agua-un',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-id="pqdq" data-tipo="revenda">
+      <div class="card-topo" onclick="toggleCard('pqdq')">
+        <div class="check-box" id="check-pqdq">✓</div>
+        <div class="card-nome">Pão de queijo</div>
+        <div class="card-tipo-chip">salgado</div>
+      </div>
+      <div class="card-campos">
+        <div class="simples-row">
+          <div>
+            <div class="simples-label">Unidades vendidas</div>
+            <div class="simples-preco">R$ 4,00 cada</div>
+          </div>
+          <div class="contador">
+            <button class="contador-btn" onclick="alterar('pqdq-un',-1)">−</button>
+            <input class="contador-input" id="pqdq-un" type="number" inputmode="numeric" autocomplete="off" value="0" min="0" oninput="atualizar()">
+            <button class="contador-btn" onclick="alterar('pqdq-un',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBSERVAÇÕES -->
+  <div class="section">
+    <div class="section-title">Observações do dia</div>
+    <textarea class="obs-textarea" id="obs" placeholder="Ex: bolo de cenoura acabou antes das 14h, cliente pediu torta inteira pra sexta..."></textarea>
+  </div>
+</div>
+
+<!-- TELA SUCESSO -->
+<div class="sucesso" id="tela-sucesso">
+  <div class="sucesso-icone">&#x2705;</div>
+  <h2>Dia registrado!</h2>
+  <p class="sucesso-sub">Ótimo trabalho hoje!<br>Copie o resumo abaixo e mande para o Fernando.</p>
+
+  <div class="resumo-box">
+    <div class="resumo-box-titulo">Resumo para WhatsApp</div>
+    <div class="resumo-texto" id="resumo-texto"></div>
+  </div>
+
+  <div class="copiado-msg" id="copiado-msg"></div>
+
+  <button class="btn-copiar" onclick="copiarResumo()">
+    <span>Copiar para WhatsApp</span>
+  </button>
+  <button class="btn-enviar" onclick="enviarFernando()">
+    Enviar direto para o Fernando
+  </button>
+  <button class="btn-novo-dia" onclick="novoDia()">Registrar outro dia</button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-fixo" id="footer">
+  <div class="footer-resumo">
+    <div class="footer-resumo-item">
+      <div class="footer-resumo-label">Total do dia</div>
+      <div class="footer-resumo-valor" id="footer-total">R$ 0,00</div>
+    </div>
+    <div class="footer-resumo-item">
+      <div class="footer-resumo-label">Itens vendidos</div>
+      <div class="footer-resumo-valor" id="footer-itens">0</div>
+    </div>
+    <div class="footer-resumo-item">
+      <div class="footer-resumo-label">Sobras</div>
+      <div class="footer-resumo-valor alerta" id="footer-sobras">0</div>
+    </div>
+  </div>
+  <button class="btn-fechar" id="btn-fechar" onclick="abrirModal()" disabled>Fechar o dia</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Resumo do dia</h2>
+    <div class="modal-data" id="modal-data"></div>
+    <div class="modal-secao">
+      <div class="modal-secao-titulo">Produção própria</div>
+      <div id="modal-linhas-producao"></div>
+    </div>
+    <div class="modal-secao" id="modal-revenda-sec" style="display:none">
+      <div class="modal-secao-titulo">Revenda</div>
+      <div id="modal-linhas-revenda"></div>
+    </div>
+    <div class="modal-secao" id="modal-sobra-sec" style="display:none">
+      <div class="modal-secao-titulo">Sobras de hoje</div>
+      <div id="modal-linhas-sobra"></div>
+    </div>
+    <div class="modal-total">
+      <div class="modal-total-label">Total vendido hoje</div>
+      <div class="modal-total-valor" id="modal-total"></div>
+    </div>
+    <div class="modal-obs" id="modal-obs"></div>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Corrigir</button>
+      <button class="btn-confirmar" onclick="confirmar()">Confirmar e salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CATÁLOGO ──
+const catalogo = {
+  'cenoura':   { nome:'Bolo de cenoura',              tipo:'producao', variantes:[{id:'cenoura-fatia',   nome:'Fatias',         preco:9,  equiv:1}, {id:'cenoura-inteiro',  nome:'Bolos inteiros',  preco:80,  equiv:12}] },
+  'fuba':      { nome:'Bolo de fubá',                 tipo:'producao', variantes:[{id:'fuba-fatia',      nome:'Fatias',         preco:8,  equiv:1}, {id:'fuba-inteiro',     nome:'Bolos inteiros',  preco:70,  equiv:12}] },
+  'laranja':   { nome:'Bolo de laranja',              tipo:'producao', variantes:[{id:'laranja-fatia',   nome:'Fatias',         preco:8,  equiv:1}, {id:'laranja-inteiro',  nome:'Bolos inteiros',  preco:70,  equiv:12}] },
+  'torta':     { nome:'Torta de frango',              tipo:'producao', variantes:[{id:'torta-fatia',     nome:'Fatias',         preco:12, equiv:1}, {id:'torta-inteira',    nome:'Tortas inteiras', preco:80,  equiv:16}] },
+  'queijo':    { nome:'Pão queijo e presunto',        tipo:'producao', variantes:[{id:'queijo-un',       nome:'Unidades',       preco:10, equiv:1}] },
+  'calabresa': { nome:'Pão recheado calabresa',       tipo:'producao', variantes:[{id:'calabresa-un',   nome:'Unidades',       preco:10, equiv:1}] },
+  'frango':    { nome:'Pão recheado frango',          tipo:'producao', variantes:[{id:'frango-un',       nome:'Unidades',       preco:10, equiv:1}] },
+  'refri':     { nome:'Refrigerante (lata)',          tipo:'revenda',  variantes:[{id:'refri-un',        nome:'Latas',          preco:5,  equiv:1}] },
+  'agua':      { nome:'Água mineral',                 tipo:'revenda',  variantes:[{id:'agua-un',         nome:'Unidades',       preco:3,  equiv:1}] },
+  'pqdq':      { nome:'Pão de queijo',                tipo:'revenda',  variantes:[{id:'pqdq-un',         nome:'Unidades',       preco:4,  equiv:1}] },
+};
+
+const FERNANDO_NUMERO = '5511XXXXXXXXX'; // substituir pelo número real
+
+// ── DATA ──
+const hoje = new Date();
+const diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const dataStr = `${diasSemana[hoje.getDay()]}, ${hoje.getDate()} de ${meses[hoje.getMonth()]} de ${hoje.getFullYear()}`;
+const dataSimples = `${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+document.getElementById('header-date').textContent = dataStr;
+document.getElementById('modal-data').textContent = dataStr;
+
+// ── SPLASH ──
+setTimeout(() => {
+  const s = document.getElementById('splash');
+  s.style.opacity = '0';
+  setTimeout(() => s.remove(), 400);
+}, 1200);
+
+// ── INSTALL BANNER ──
+(function() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isAndroid = /Android/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const dismissed = localStorage.getItem('install-banner-dismissed');
+  if ((isIOS || isAndroid) && !isStandalone && !dismissed) {
+    const banner = document.getElementById('install-banner');
+    const instrucao = document.getElementById('banner-instrucao');
+    instrucao.textContent = isIOS
+      ? 'Toque em Compartilhar (o quadradinho com seta) → Adicionar à Tela de Início'
+      : 'Toque nos 3 pontos do navegador → Adicionar à tela inicial';
+    banner.classList.add('visivel');
+  }
+})();
+
+function fecharBanner() {
+  localStorage.setItem('install-banner-dismissed', '1');
+  document.getElementById('install-banner').classList.remove('visivel');
+}
+
+// ── TOGGLE CARD ──
+function toggleCard(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  card.classList.toggle('ativo');
+  atualizar();
+}
+
+// ── CONTADOR ──
+function alterar(id, delta) {
+  const el = document.getElementById(id);
+  el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+  const base = id.replace(/-fatia|-inteiro|-un|-inteira/, '');
+  calcSobra(base);
+  atualizar();
+}
+
+// ── SOBRA ──
+function calcSobra(id) {
+  const item = catalogo[id];
+  if (!item || item.tipo === 'revenda') return;
+  const fezEl = document.getElementById('fez-' + id);
+  if (!fezEl) return;
+  const fez = parseInt(fezEl.value) || 0;
+  const el = document.getElementById('sobra-' + id);
+  if (fez === 0) { el.style.display = 'none'; return; }
+  let vendidosEmUnidades = 0;
+  item.variantes.forEach(v => {
+    vendidosEmUnidades += (parseInt(document.getElementById(v.id)?.value) || 0) * v.equiv;
+  });
+  const sobra = fez - vendidosEmUnidades;
+  el.style.display = 'block';
+  el.textContent = sobra > 0
+    ? `Sobrou: ${sobra} unidade${sobra > 1 ? 's' : ''} não vendida${sobra > 1 ? 's' : ''}`
+    : sobra < 0 ? 'Atenção: vendido excede o produzido — revise os números'
+    : 'Tudo vendido hoje!';
+  el.style.color = sobra > 0 ? 'var(--vermelho)' : sobra < 0 ? 'var(--vermelho)' : 'var(--verde)';
+  atualizar();
+}
+
+// ── TOTAIS ──
+function atualizar() {
+  let total = 0, itens = 0, sobras = 0;
+  Object.entries(catalogo).forEach(([id, item]) => {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (!card?.classList.contains('ativo')) return;
+    item.variantes.forEach(v => {
+      const qty = parseInt(document.getElementById(v.id)?.value) || 0;
+      total += qty * v.preco; itens += qty;
+    });
+    if (item.tipo === 'producao') {
+      const fez = parseInt(document.getElementById('fez-' + id)?.value) || 0;
+      if (fez > 0) {
+        let vendidos = 0;
+        item.variantes.forEach(v => { vendidos += (parseInt(document.getElementById(v.id)?.value) || 0) * v.equiv; });
+        if (fez > vendidos) sobras += fez - vendidos;
+      }
+    }
+  });
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  document.getElementById('footer-total').textContent = fmt(total);
+  document.getElementById('footer-itens').textContent = itens;
+  document.getElementById('footer-sobras').textContent = sobras;
+  document.getElementById('chip-total').textContent = fmt(total);
+  document.getElementById('btn-fechar').disabled = itens === 0;
+}
+
+// ── MODAL ──
+function abrirModal() {
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  let totalGeral = 0, htmlProd = '', htmlRev = '', htmlSobra = '', temRev = false, temSobra = false;
+  Object.entries(catalogo).forEach(([id, item]) => {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (!card?.classList.contains('ativo')) return;
+    let subtotal = 0, detalhes = [];
+    item.variantes.forEach(v => {
+      const qty = parseInt(document.getElementById(v.id)?.value) || 0;
+      if (qty > 0) { subtotal += qty * v.preco; detalhes.push(`${qty} ${v.nome.toLowerCase()} × ${fmt(v.preco)}`); }
+    });
+    if (subtotal === 0) return;
+    totalGeral += subtotal;
+    const linha = `<div class="modal-linha"><div><div class="modal-linha-nome">${item.nome}</div><div class="modal-linha-detalhe">${detalhes.join(' + ')}</div></div><div class="modal-linha-valor">${fmt(subtotal)}</div></div>`;
+    if (item.tipo === 'producao') htmlProd += linha; else { htmlRev += linha; temRev = true; }
+    if (item.tipo === 'producao') {
+      const fez = parseInt(document.getElementById('fez-' + id)?.value) || 0;
+      let vendidos = 0;
+      item.variantes.forEach(v => { vendidos += (parseInt(document.getElementById(v.id)?.value) || 0) * v.equiv; });
+      if (fez > 0 && fez > vendidos) {
+        const s = fez - vendidos;
+        htmlSobra += `<div class="modal-linha modal-linha-perda"><div class="modal-linha-nome">${item.nome}</div><div class="modal-linha-valor modal-linha-perda">${s} un. não vendida${s>1?'s':''}</div></div>`;
+        temSobra = true;
+      }
+    }
+  });
+  document.getElementById('modal-linhas-producao').innerHTML = htmlProd || '<div class="modal-linha" style="color:#b0906a">Nenhum item</div>';
+  document.getElementById('modal-linhas-revenda').innerHTML = htmlRev;
+  document.getElementById('modal-revenda-sec').style.display = temRev ? 'block' : 'none';
+  document.getElementById('modal-linhas-sobra').innerHTML = htmlSobra;
+  document.getElementById('modal-sobra-sec').style.display = temSobra ? 'block' : 'none';
+  document.getElementById('modal-total').textContent = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
+  const obs = document.getElementById('obs').value.trim();
+  const obsEl = document.getElementById('modal-obs');
+  if (obs) { obsEl.textContent = obs; obsEl.style.display = 'block'; } else obsEl.style.display = 'none';
+  document.getElementById('modal').classList.add('aberto');
+}
+
+function fecharModal() { document.getElementById('modal').classList.remove('aberto'); }
+
+// ── GERAR TEXTO WHATSAPP ──
+function gerarTextoWA() {
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  let totalGeral = 0, linhasProd = [], linhasRev = [], linhasSobra = [];
+  Object.entries(catalogo).forEach(([id, item]) => {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (!card?.classList.contains('ativo')) return;
+    let subtotal = 0, detalhes = [];
+    item.variantes.forEach(v => {
+      const qty = parseInt(document.getElementById(v.id)?.value) || 0;
+      if (qty > 0) { subtotal += qty * v.preco; detalhes.push(`${qty} ${v.nome.toLowerCase()}`); }
+    });
+    if (subtotal === 0) return;
+    totalGeral += subtotal;
+    const linha = `- ${item.nome}: ${detalhes.join(' + ')} — ${fmt(subtotal)}`;
+    if (item.tipo === 'producao') linhasProd.push(linha); else linhasRev.push(linha);
+    if (item.tipo === 'producao') {
+      const fez = parseInt(document.getElementById('fez-' + id)?.value) || 0;
+      let vendidos = 0;
+      item.variantes.forEach(v => { vendidos += (parseInt(document.getElementById(v.id)?.value) || 0) * v.equiv; });
+      if (fez > 0 && fez > vendidos) linhasSobra.push(`- ${item.nome}: ${fez - vendidos} un.`);
+    }
+  });
+  let texto = `*Aroma de Cozinha — ${dataSimples}*\n*Registro do dia*\n`;
+  if (linhasProd.length) texto += `\nProdução própria:\n${linhasProd.join('\n')}`;
+  if (linhasRev.length) texto += `\n\nRevenda:\n${linhasRev.join('\n')}`;
+  texto += `\n\n*Total do dia: ${fmt(totalGeral)}*`;
+  if (linhasSobra.length) texto += `\nSobras: ${linhasSobra.join(', ')}`;
+  const obs = document.getElementById('obs').value.trim();
+  if (obs) texto += `\n\nObs: ${obs}`;
+  return texto;
+}
+
+// ── CONFIRMAR ──
+function confirmar() {
+  document.getElementById('modal').classList.remove('aberto');
+  const texto = gerarTextoWA();
+  document.getElementById('resumo-texto').textContent = texto;
+  document.getElementById('tela-registro').style.display = 'none';
+  document.getElementById('footer').style.display = 'none';
+  document.getElementById('tela-sucesso').style.display = 'block';
+  window.removeEventListener('beforeunload', beforeUnloadHandler);
+}
+
+function copiarResumo() {
+  const texto = document.getElementById('resumo-texto').textContent;
+  navigator.clipboard.writeText(texto).then(() => {
+    const msg = document.getElementById('copiado-msg');
+    msg.textContent = 'Copiado! Cole no WhatsApp agora.';
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNode(document.getElementById('resumo-texto'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function enviarFernando() {
+  const texto = encodeURIComponent(document.getElementById('resumo-texto').textContent);
+  window.open(`https://wa.me/${FERNANDO_NUMERO}?text=${texto}`, '_blank');
+}
+
+function novoDia() { location.reload(); }
+
+// ── PROTEÇÃO CONTRA FECHAMENTO ──
+function temDadosPreenchidos() {
+  return [...document.querySelectorAll('.contador-input')].some(el => parseInt(el.value) > 0);
+}
+function beforeUnloadHandler(e) {
+  if (temDadosPreenchidos()) { e.preventDefault(); e.returnValue = ''; }
+}
+window.addEventListener('beforeunload', beforeUnloadHandler);
+
+atualizar();
+</script>
+</body>
+</html>

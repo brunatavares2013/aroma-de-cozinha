@@ -1,0 +1,12 @@
+{
+  "name": "Aroma de Cozinha",
+  "short_name": "Aroma",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F5ECD7",
+  "theme_color": "#6B3A2A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
