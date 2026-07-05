@@ -657,6 +657,17 @@
     </div>
   </div>
 
+  <div class="totalizador">
+    <div class="tot-titulo">Correções / Observações</div>
+    <p style="font-size:0.75rem;color:var(--medio);margin-bottom:0.6rem;line-height:1.5;">
+      Use para registrar ajustes de quantidade. Ex: "Cenoura fatia: -2, Refrigerante: -1"
+    </p>
+    <textarea id="observacoes" rows="3" placeholder="Escreva aqui qualquer correção ou observação do dia..."
+      style="width:100%;border:1.5px solid var(--dourado);border-radius:8px;padding:0.65rem;
+             font-family:'Montserrat',sans-serif;font-size:0.82rem;color:var(--marrom);
+             background:var(--branco);resize:vertical;outline:none;"></textarea>
+  </div>
+
   <button class="btn-fechar" id="btn-enviar" onclick="fecharDia()">
     Fechar o Dia e Enviar para Planilha
   </button>
@@ -666,7 +677,7 @@
 <div id="toast"></div>
 
 <script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4o8B-LK4oXZPhRViR-Eu319uETaTZ2exEK57RytWO-M3G6kHo26QW16jyApmze9UTGQ/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDK6y0Itv1V_0j0Jc2mIfbUxwSAoOs39kf-1JieYQWgm9N8687u0rpNIjXypno8vm48w/exec';
 
   // ── Data ──
   const hoje = new Date();
@@ -773,7 +784,7 @@
     btn.disabled = true;
     btn.textContent = 'Enviando…';
 
-    const payload = { data: dataISO, itens: {} };
+    const payload = { data: dataISO, itens: {}, observacoes: document.getElementById('observacoes').value.trim() };
     for (const id of Object.keys(PRODUTOS)) {
       payload.itens[id] = ler(id);
     }
